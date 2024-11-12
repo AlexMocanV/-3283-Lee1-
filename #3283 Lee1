@@ -1,0 +1,140 @@
+#include <bits/stdc++.h>
+std::ifstream fin("lee1.in");
+std::ofstream fout("lee1.out");
+int n,m,k,mini=INT_MAX;
+bool ok[6];
+std::vector<int>v;
+std::vector<int>bunu;
+std::pair<int,int>poziti[7];
+bool bun(int i,int j)
+{
+    return 1<=i&&1<=j&&j<=m&&i<=n;
+}
+int16_t dx[]={-1,1,0,0};
+int16_t dy[]={0,0,-1,1};
+bool mat[101][101];
+std::vector<std::vector<int>>drum;
+void lee(int istart,int jstart){
+    std::queue<std::pair<int,int>>q;
+    q.push(std::make_pair(istart,jstart));
+    drum[istart][jstart]=1;
+    while(!q.empty())
+    {
+        int x=q.front().first;
+        int y=q.front().second;
+        q.pop();
+        for(int i=0;i<4;i++)
+        {
+            if((bun(dx[i]+x,dy[i]+y))&&mat[dx[i]+x][dy[i]+y]==0&&drum[dx[i]+x][dy[i]+y]==0)
+            {
+                drum[dx[i]+x][dy[i]+y]=drum[x][y]+1;
+                q.push(std::make_pair(dx[i]+x,dy[i]+y));
+            }
+        }
+    }
+}
+bool cmp(std::pair<int,int>a,std::pair<int,int>b)
+{
+    if(a.first<b.first)
+    {
+        return true;
+    }
+    else if(a.first==b.first)
+    {
+        return a.second<b.second;
+    }
+    return false;
+}
+void reset()
+{
+    for(int i=1; i<=n; i++)
+        std::fill(drum[i].begin(),drum[i].end(),0);
+}
+void parcurgere()
+{
+    int track=0;
+    reset();
+    lee(poziti[0].first,poziti[0].second);
+    
+    if(drum[poziti[v[1]].first][poziti[v[1]].second]==0) 
+        return;
+    
+    track += drum[poziti[v[1]].first][poziti[v[1]].second] - 1;
+    
+    for(int i=1;i<k;i++)
+    {
+        reset();
+        lee(poziti[v[i]].first,poziti[v[i]].second);
+        
+        if(drum[poziti[v[i+1]].first][poziti[v[i+1]].second]==0) 
+        return;
+        
+        track+=drum[poziti[v[i+1]].first][poziti[v[i+1]].second]-1;
+    }
+    reset();
+    lee(poziti[v[k]].first,poziti[v[k]].second);
+    
+    if(drum[poziti[k+1].first][poziti[k+1].second]==0)
+        return;
+    track+=drum[poziti[k+1].first][poziti[k+1].second]-1;
+    
+    if(track<mini)
+    {
+        mini=track;
+        bunu=v;
+    }
+}
+void Backtracking(int x)
+{
+    for(int i=1;i<=k;i++)
+    {
+        if(ok[i]==false)
+        {
+            ok[i]=true;
+            v[x]=i;
+            if(x<k) Backtracking(x+1);
+            else parcurgere();
+            ok[i]=false;
+        }
+    }
+}
+int main()
+{
+    int parcurs;
+    fin>>n>>m;
+    
+    drum.resize(n+1,std::vector<int>(m+1,0));
+    
+    for(int i=1;i<=n;i++)
+        for(int j=1;j<=m;j++)
+            fin>>mat[i][j];
+    
+    int sti,stj,endi,endj;        
+    fin>>sti>>stj>>endi>>endj;
+    
+    poziti[0]={sti,stj};
+    fin>>k;
+    
+    for(int i=1;i<=k;++i)
+    {
+        fin>>poziti[i].first>>poziti[i].second;
+    }
+    
+    poziti[k+1]={endi,endj};
+    std::sort(poziti+1,poziti+k+1,cmp);
+    
+    v.resize(k+1);
+    Backtracking(1);
+    
+    fout<<mini<<'\n';
+    
+    fout<<sti<<','<<stj<<'\n';
+    
+    for(int i=1;i<=k;i++)
+    {
+        fout<<poziti[bunu[i]].first<<','<<poziti[bunu[i]].second<<'\n';
+    }
+    
+    fout<<endi<<','<<endj;
+    return 0;
+}
